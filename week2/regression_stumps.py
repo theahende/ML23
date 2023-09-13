@@ -30,9 +30,17 @@ class RegressionStump():
     
     def __init__(self):
         """ The state variables of a stump"""
+        
+        #The feature we are splitting on
         self.idx = None
+        
+        #The split value
         self.val = None
+        
+        #Mean of all objects in left leaf
         self.left = None
+        
+        #Mean of all objects in left leaf
         self.right = None
     
     def fit(self, data, targets):
@@ -52,6 +60,14 @@ class RegressionStump():
         self.left = None
         self.right = None
         ### YOUR CODE HERE
+        for i in enumerate(data.shape()[1]):
+            cost = None
+            for x in enumerate(data.shape()[0]):
+                self.val = x
+            
+                
+        
+        
         ### END CODE
 
     def predict(self, X):
@@ -70,6 +86,7 @@ class RegressionStump():
     def score(self, X, y):
         """ Compute mean least squares loss of the model
 
+        
         Args
             X: np.array, shape n,d
             y: np.array, shape n, 
@@ -78,6 +95,8 @@ class RegressionStump():
         """
         out = None
         ### YOUR CODE HERE
+        
+        
         ### END CODE
         return out
         
