@@ -86,9 +86,11 @@ class RegressionStump():
         pred = None
         ### YOUR CODE HERE
         dat = X[:, self.idx]
+        print("dat is", dat)
         n = X.shape[0]        
         decision = (dat < self.val)
         pred = decision * self.left + (1-decision) * self.right
+        print("pred is", pred)
         ### END CODE
         return pred
     

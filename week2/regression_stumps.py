@@ -72,14 +72,21 @@ class RegressionStump():
 
     def predict(self, X):
         """ Regression tree prediction algorithm
-
         Args
             X: np.array, shape n,d
-        
         returns pred: np.array shape n,  model prediction on X
         """
         pred = None
-        ### YOUR CODE HERE
+        
+        #Retrieve the colum consisting of the dermining attribute
+        determining_attribute = X[:, self.idx]
+        
+        #Retrieve the amount of data points
+        n = X.shape[0]
+        
+        
+        
+        
         ### END CODE
         return pred
     

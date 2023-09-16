@@ -28,7 +28,12 @@ class LinearRegressor():
         Hint: np.concatenate may be useful
         """
         newX = X.copy()
-        ### YOUR CODE HERE 1-3 lines
+        
+        #We initiate a column vector consisting of only 1s having the same amount of rows as X
+        ones = np.ones((X.shape[0],1))
+        
+        #We then concatenate this on our matrix X by putting it in front, e.g. the first column
+        newX = np.concatenate((ones,newX), axis = 1)
         ### END CODE
         return newX
     
@@ -49,7 +54,12 @@ class LinearRegressor():
         """  
         w = np.zeros(X.shape[1]+1)
         newX = self.hardcode_bias(X)
-        ### YOUR CODE HERE 1-3 lines
+        
+        #We obtain the pseudoinverse 
+        pinv = np.linalg.pinv(newX)
+        
+        #We compute w using the pseudoinverse as this is the "formula" given for it 
+        w = pinv @ y
         ### END CODE
         self.w =  w
 
@@ -62,8 +72,11 @@ class LinearRegressor():
         """
         pred = None
         newX = self.hardcode_bias(X)
-        ### YOUR CODE HERE 1-2 lines
-        ### END CODE
+        
+        #The prediction is the inner product between our data X and the vector w.
+        #We return a colun vector with all the approximations
+        pred = newX @ self.w
+
         return pred
 
     def score(self, X, y):
@@ -75,7 +88,12 @@ class LinearRegressor():
           score (float) mean squared loss on data X with labels y
         """
         score = 0 
-        ### YOUR CODE HERE 1-3 lines
+
+        #We obtain what we predict with the new data X
+        pred = self.predict(X)
+        
+        #We compute the mean squared error
+        score = ((pred-y)**2).mean()
         ### END CODE
         return score
         
