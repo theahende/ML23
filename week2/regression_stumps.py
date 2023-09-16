@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
 import pdb 
 from sklearn.tree import DecisionTreeRegressor
@@ -59,16 +58,53 @@ class RegressionStump():
         self.val = None
         self.left = None
         self.right = None
-        ### YOUR CODE HERE
-        for i in enumerate(data.shape()[1]):
-            cost = None
-            for x in enumerate(data.shape()[0]):
-                self.val = x
+        
+        #Get the number of points (n) and number of features (d)
+        num_points, num_features = data.shape
+        
+        #Print the number of points
+        print(num_points)
+        
+        #Initialize a variable to keep track of the best score
+        best_score = None
+        
+        #Iterate through each data feature, named feat_idx
+        for feat_idx in range(num_features):
+            #Access the data belonging only to that feature in the data set
+            feat = data[:, feat_idx]
             
+            #Iterate through each possible split value by taking each value in the
+            #index interval (0,n) for that feature
+            for split_idx in range(num_points):
+                split_value = feat[split_idx]
                 
+                #If the feature vector is less than the split value then that data point
+                #is going to the left. Make two boolean vectors containing this information
+                goes_left = feat < split_value
+                goes_right = feat >= split_value
+
+                #Why this check?
+                if np.sum(goes_left)==0 or np.sum(goes_right)==0:
+                    continue
+                
+                #Compute the mean of left and right side by only expressing
+                #the entries from the targets that we want
+                left_mean = np.mean(targets[goes_left])
+                right_mean = np.mean(targets[goes_right])
+                
+                #Compute the scores by taking the least squares loss
+                left_score = np.sum((targets[goes_left] - left_mean)**2)
+                right_score = np.sum((targets[goes_right] - right_mean)**2)
+                total_score = left_score + right_score
+                
+                #If the total score is better than the current best score update the fields of the model
+                if best_score == None or total_score < best_score:
+                    best_score = total_score
+                    self.idx = feat_idx
+                    self.val = split_value
+                    self.left = left_mean
+                    self.right = right_mean
         
-        
-        ### END CODE
 
     def predict(self, X):
         """ Regression tree prediction algorithm
@@ -80,12 +116,19 @@ class RegressionStump():
         
         #Retrieve the colum consisting of the dermining attribute
         determining_attribute = X[:, self.idx]
+        print("determining attribute is:", determining_attribute)
         
-        #Retrieve the amount of data points
-        n = X.shape[0]
+        #Make a vector containing zeroes with rows equal to data set
+        pred = np.zeros_like(determining_attribute)
         
-        
-        
+        #Compares each value of determining attributes against the split value
+        #Returns a decision vector containing 1 if the statement was true, otherwise 0
+        decision = (determining_attribute < self.val)
+        print("decision is", decision)
+        #If decision had an entry of 1, that means we are in the left node
+        #Therefore the following works for generating the correct values
+        pred = decision * self.left + (1-decision) * self.right
+        print("pred is", pred)
         
         ### END CODE
         return pred
@@ -101,10 +144,15 @@ class RegressionStump():
         returns out: scalar - mean least squares loss.
         """
         out = None
-        ### YOUR CODE HERE
         
+        #First make the prediction on the data set returns a n row vector
+        prediction = self.predict(X)
         
-        ### END CODE
+        #Compute the difference between prediction and true label
+        difference = prediction-y
+        
+        #Compute the MEAN least squares loss and return
+        out = (difference**2).mean()      
         return out
         
 
