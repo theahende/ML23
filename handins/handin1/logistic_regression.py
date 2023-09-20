@@ -43,8 +43,6 @@ class LogisticRegressionClassifier:
            y: np.array shape (n,)  int - Labels
            w: np.array shape (d,)  float - Initial parameter vector
 
-           w.T * X = 1 x d d x 1
-
         Returns:
            cost: scalar: the average negative log likelihood for logistic regression with data X, y
            grad: np.array shape(d, ) gradient of the average negative log likelihood at w
@@ -52,29 +50,19 @@ class LogisticRegressionClassifier:
         
         cost = 0
         grad = np.zeros(w.shape)
-        ### YOUR CODE HERE
-        rows, cols = X.shape
+       
+        ### SECOND TRY START
+        Xw = np.dot(X, w) #(n,1) 
+        XT = X.T #(d,n) 
         
-        #Sum used for the loss-function
-        sum = 0
+        yXw = y * Xw #position wise multiplication, (n,1)
+        cost = np.mean(np.log(1+np.exp(yXw)))
+        grad =(XT @ (y*logistic(yXw)))/X.shape[0]
         
-        #Sum used for the gradient
-        sum2 = 0
-        for i in range(rows):
-            sum += np.log(1 + np.exp(-y[i] * w.T @ X[i]))
-
-            j = 0
-            for j in range(cols):
-                sum2 += (1 / (1 + np.exp(-y[i] * w.T @ X[i]))) * np.exp(-y[i] * w.T @ X[i]) * (-y[i] * X[i, j])
-                j = j
-            grad[j] = sum2 / rows
-
-        #Compute the cost of th loss function
-        cost = sum / rows
-
-        ### END CODE
+        ### SECOND TRY END
         assert grad.shape == w.shape
         return cost, grad
+        
 
     def fit(self, X, y, w=None, lr=0.1, batch_size=16, epochs=10):
         """
@@ -102,30 +90,35 @@ class LogisticRegressionClassifier:
         history = []
 
         ### YOUR CODE HERE
-        cost_best = float("inf")
 
         # Initialize w from N(0,1)
         w = np.random.standard_normal(w.shape[0])
+        
+        #Number of batches (Iterations) per epoch
+        numOfBatches = int(np.floor(X.shape[0]/batch_size))
 
         #Here we do mini-batch stochastic gradient descent
         for i in range(epochs):
+            cost_best = float("inf")
             # Here we get our sample of size batch_size
             Xy = np.hstack((X, y[:, np.newaxis]))
             XyShuff = np.random.permutation(Xy)
-            Xys = XyShuff[0:batch_size, :]
-            XShuff = Xys[:, :-1]
-            yShuff = Xys[:, -1]
+            
+            for j in range(numOfBatches):
+                Xys = XyShuff[j*batch_size:(j+1)*batch_size, :]
+                XShuff = Xys[:, :-1]
+                yShuff = Xys[:, -1]
 
-            # Here we compute g (gradient) and the new w
-            eta = 0.1  # step size
-            cost, g = self.cost_grad(XShuff, yShuff, w)
-            w = w - eta * g
+                # Here we compute g (gradient) and the new w
+                eta = 0.1  # step size
+                cost, g = self.cost_grad(XShuff, yShuff, w)
+                w = w - eta * g
 
-            if cost_best > cost:
-                cost_best = cost
-                self.w = w
+                if cost_best > cost:
+                    cost_best = cost
+                    self.w = w
 
-            #We save the cost of the current epoch
+                #We save the cost of the current epoch
             history.append(cost)
 
         ### END CODE
@@ -146,6 +139,7 @@ class LogisticRegressionClassifier:
         ### YOUR CODE HERE
         z = X @ self.w.T
         probabilities = logistic(z)
+        print(probabilities)
         prediction = np.sign(probabilities - 0.5)
         for i in range(len(prediction)):
             if prediction[i] == 0:
@@ -169,6 +163,8 @@ class LogisticRegressionClassifier:
         rows, _ = X.shape
         correct_predictions = 0
         prediction = self.predict(X)
+        print("Prediction:", prediction)
+        print("Y:", y)
         for i in range(rows):
             if prediction[i] == y[i]:
                 correct_predictions += 1
