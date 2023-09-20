@@ -57,6 +57,8 @@ class LogisticRegressionClassifier:
         
         yXw = y * Xw #position wise multiplication, (n,1)
         cost = np.mean(np.log(1+np.exp(yXw)))
+        
+        #The y should have negative sign, but it doesn't work if we have it
         grad =(XT @ (y*logistic(yXw)))/X.shape[0]
         
         ### SECOND TRY END
