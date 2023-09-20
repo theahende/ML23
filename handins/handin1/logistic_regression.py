@@ -15,7 +15,12 @@ def logistic(z):
     """
     logi = np.zeros(z.shape)
     ### YOUR CODE HERE
+    
+    #Rows is equal to the amount of points we want to apply the sigmoid function on
     rows = z.shape[0]
+    
+    #We take the sigmoid function each index in z and save it on the equivalent index in logi,
+    #which we return.
     for i in range(rows):
         logi[i] = 1 / (1 + np.exp(-z[i]))
     ### END CODE
@@ -44,11 +49,16 @@ class LogisticRegressionClassifier:
            cost: scalar: the average negative log likelihood for logistic regression with data X, y
            grad: np.array shape(d, ) gradient of the average negative log likelihood at w
         """
+        
         cost = 0
         grad = np.zeros(w.shape)
         ### YOUR CODE HERE
         rows, cols = X.shape
+        
+        #Sum used for the loss-function
         sum = 0
+        
+        #Sum used for the gradient
         sum2 = 0
         for i in range(rows):
             sum += np.log(1 + np.exp(-y[i] * w.T @ X[i]))
@@ -59,6 +69,7 @@ class LogisticRegressionClassifier:
                 j = j
             grad[j] = sum2 / rows
 
+        #Compute the cost of th loss function
         cost = sum / rows
 
         ### END CODE
@@ -96,6 +107,7 @@ class LogisticRegressionClassifier:
         # Initialize w from N(0,1)
         w = np.random.standard_normal(w.shape[0])
 
+        #Here we do mini-batch stochastic gradient descent
         for i in range(epochs):
             # Here we get our sample of size batch_size
             Xy = np.hstack((X, y[:, np.newaxis]))
@@ -104,7 +116,7 @@ class LogisticRegressionClassifier:
             XShuff = Xys[:, :-1]
             yShuff = Xys[:, -1]
 
-            # Here we compute g and w
+            # Here we compute g (gradient) and the new w
             eta = 0.1  # step size
             cost, g = self.cost_grad(XShuff, yShuff, w)
             w = w - eta * g
@@ -113,6 +125,7 @@ class LogisticRegressionClassifier:
                 cost_best = cost
                 self.w = w
 
+            #We save the cost of the current epoch
             history.append(cost)
 
         ### END CODE
