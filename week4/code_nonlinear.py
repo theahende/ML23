@@ -42,12 +42,38 @@ class PerceptronClassifier():
         
     
         """
-        if w is None:
-            w = np.zeros(X.shape[1])       
-        bestw = w
+        if self.w is None: 
+            self.w = np.zeros(X.shape[1])
+            self.w = np.concatenate((np.array([[1]]),self.w), axis=1)
+        ones = np.ones_like(X.shape[0])
+        X = np.concatenate((ones,X), axis=1)  
+        bestW = self.w
+        num_of_points = X.shape[0]
+        bestScore = 0
+        
         ### YOUR CODE
+        for _ in range(maxiter):
+            new_prediction = self.predict(X)
+            print(new_prediction)
+            wrong_point = []
+            wrong_point_index = 0
+            for j in range(num_of_points):
+                if new_prediction[j] != y[j]:
+                    wrong_point = new_prediction[j]
+                    wrong_point_index = j
+                    break
+                else:
+                    self.w = bestW
+                    print("hej2", self.w)
+                    return
+            self.w = self.w + y[wrong_point_index] * wrong_point
+            score = self.score(X,y)
+            if score > bestScore:
+                bestScore = score
+                bestW = self.w
+                
         ### END CODE
-        self.w = bestw
+        self.w = bestW
 
     def predict(self, X):
         """ predict function for classifier
@@ -56,8 +82,12 @@ class PerceptronClassifier():
         Returns
           pred (numpy array,  shape(n,))
         """
+        if self.w is None:
+            self.w = np.zeros(X.shape[1])  
+            
         pred = None
         ### YOUR CODE HERE 1-2 lines
+        pred = np.sign(X @ self.w)
         ### END CODE
         return pred
 
@@ -71,6 +101,9 @@ class PerceptronClassifier():
         """
         score = 0 
         ### YOUR CODE HERE 1-3 lines
+        prediction = self.predict(X)
+        correct = prediction == y 
+        score = np.mean(correct)
         ### END CODE
         return score
     
@@ -144,9 +177,13 @@ def square_transform(X):
       Xt: np.array of shape(n, 3) 
     """
     # Insert code here to transform the data - aim to make a vectorized solution!
-    Xt = X
+    Xt = np.copy(X)
 
     ### YOUR CODE HERE 2-4 lines
+    bias = np.ones((X.shape[0],1))
+    Xt[:,0] = Xt[:,0]**2
+    Xt[:,1] = Xt[:,1]**2
+    Xt = np.hstack((bias, Xt))
     ### END CODE 
     
     return Xt
@@ -187,6 +224,7 @@ def poly_transform(X):
     """
     Xt = X
     ### YOUR CODE HERE
+    
     ### END CODE
     return Xt
 
