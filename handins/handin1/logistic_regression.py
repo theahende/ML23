@@ -15,12 +15,12 @@ def logistic(z):
     """
     logi = np.zeros(z.shape)
     ### YOUR CODE HERE
-    
-    #Rows is equal to the amount of points we want to apply the sigmoid function on
+
+    # Rows is equal to the amount of points we want to apply the sigmoid function on
     rows = z.shape[0]
-    
-    #We take the sigmoid function each index in z and save it on the equivalent index in logi,
-    #which we return.
+
+    # We take the sigmoid function each index in z and save it on the equivalent index in logi,
+    # which we return.
     for i in range(rows):
         logi[i] = 1 / (1 + np.exp(-z[i]))
     ### END CODE
@@ -47,24 +47,23 @@ class LogisticRegressionClassifier:
            cost: scalar: the average negative log likelihood for logistic regression with data X, y
            grad: np.array shape(d, ) gradient of the average negative log likelihood at w
         """
-        
+
         cost = 0
         grad = np.zeros(w.shape)
-       
+
         ### SECOND TRY START
-        Xw = np.dot(X, w) #(n,1) 
-        XT = X.T #(d,n) 
-        
-        yXw = y * Xw #position wise multiplication, (n,1)
-        cost = np.mean(np.log(1+np.exp(yXw)))
-        
-        #The y should have negative sign, but it doesn't work if we have it
-        grad =(XT @ (y*logistic(yXw)))/X.shape[0]
-        
+        Xw = np.dot(X, w)  # (n,1)
+        XT = X.T  # (d,n)
+
+        yXw = y * Xw  # position wise multiplication, (n,1)
+        cost = np.mean(np.log(1 + np.exp(-yXw)))
+
+        # The y should have negative sign, but it doesn't work if we have it
+        grad = ( XT @ ( -y * logistic(-yXw) ) ) / X.shape[0]
+
         ### SECOND TRY END
         assert grad.shape == w.shape
         return cost, grad
-        
 
     def fit(self, X, y, w=None, lr=0.1, batch_size=16, epochs=10):
         """
@@ -95,19 +94,19 @@ class LogisticRegressionClassifier:
 
         # Initialize w from N(0,1)
         w = np.random.standard_normal(w.shape[0])
-        
-        #Number of batches (Iterations) per epoch
-        numOfBatches = int(np.floor(X.shape[0]/batch_size))
 
-        #Here we do mini-batch stochastic gradient descent
-        for i in range(epochs):
+        # Number of batches (Iterations) per epoch
+        numOfBatches = int(np.floor(X.shape[0] / batch_size))
+
+        # Here we do mini-batch stochastic gradient descent
+        for _ in range(epochs):
             cost_best = float("inf")
             # Here we get our sample of size batch_size
             Xy = np.hstack((X, y[:, np.newaxis]))
             XyShuff = np.random.permutation(Xy)
-            
+
             for j in range(numOfBatches):
-                Xys = XyShuff[j*batch_size:(j+1)*batch_size, :]
+                Xys = XyShuff[j * batch_size : (j + 1) * batch_size, :]
                 XShuff = Xys[:, :-1]
                 yShuff = Xys[:, -1]
 
@@ -120,7 +119,7 @@ class LogisticRegressionClassifier:
                     cost_best = cost
                     self.w = w
 
-                #We save the cost of the current epoch
+                # We save the cost of the current epoch
             history.append(cost)
 
         ### END CODE
