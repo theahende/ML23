@@ -177,8 +177,8 @@ class SoftmaxClassifier:
         """
         out = None
         ### YOUR CODE HERE
-        prediction = softmax(X @ self.W)
-        out = np.argmax(prediction)
+        prediction = X @ self.W
+        out = np.argmax(prediction, axis=1)
         ### END CODE
         return out
 
