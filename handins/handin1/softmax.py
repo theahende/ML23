@@ -79,17 +79,14 @@ class SoftmaxClassifier:
         """
         cost = np.nan
         grad = np.zeros(W.shape) * np.nan
-        Yk = one_in_k_encoding(y, self.num_classes)  # may help - otherwise you may remove it
+        Yk = one_in_k_encoding(y, self.num_classes)
         ### YOUR CODE HERE
         n = X.shape[0]
         XW = X @ W
         softmaxXW = softmax(XW)
-        #cost = -np.mean(np.log(Yk.T @ softmaxXW))
-        cost = -np.mean(np.log(softmaxXW)[np.nonzero(Yk)])
-        grad = -1/n * (X.T @ (Yk - softmaxXW)) # rounding might be wrong 
         
-        #cost = - np.mean(np.log(softmax(X @ W)[np.nonzero(Yk)]))
-        #grad = - (X.T @ (Yk-softmax(X@W)))/X.shape[0]
+        cost = -np.mean(np.log(softmaxXW)[np.nonzero(Yk)])
+        grad = -1/n * (X.T @ (Yk - softmaxXW))
 
         ### END CODE
         return cost, grad
@@ -122,10 +119,8 @@ class SoftmaxClassifier:
         # Here we do mini-batch stochastic gradient descent
         for _ in range(epochs):
             cost_best = float("inf")
-            # Here we get our sample of size batch_size
-            #XY = np.hstack((X, Yk))
             
-            # we shuffle the indexes with same dimensions as X
+            # We shuffle the indexes with same dimensions as X
             shuff_index = np.random.permutation(X.shape[0])
             for j in range(numOfBatches):
                 
@@ -133,8 +128,6 @@ class SoftmaxClassifier:
                 X_batch = X[shuff_batch]
                 Y_batch = Y[shuff_batch]
                 
-                # WE ARE HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                # Here we compute g (gradient) and the new w
                 eta = lr  # step size
                 cost, grad = self.cost_grad(X_batch, Y_batch, W)
                 W = W - eta * grad
@@ -143,7 +136,7 @@ class SoftmaxClassifier:
                     cost_best = cost
                     self.W = W
 
-                # We save the cost of the current epoch
+            # We save the cost of the current epoch
             history.append(cost)
 
         ### END CODE
@@ -216,19 +209,8 @@ def test_grad():
     numerical_grad_check(f, w)
     print("Test Success")
 
-def test_grad_2():
-    print("*" * 5, "Testing  Gradient  2")
-    X = np.array([[10.0, 2.0], [7.0, 4.0], [3.0, -8.0]])
-    w = np.ones((2, 3))
-    y = np.array([0, 1, 2])
-    scl = SoftmaxClassifier(num_classes=3)
-    f = lambda z: scl.cost_grad(X, y, W=z)
-    numerical_grad_check(f, w)
-    print("Test Success")
-
 
 if __name__ == "__main__":
     test_encoding()
     test_softmax()
-    # test_grad_2()
     test_grad()
