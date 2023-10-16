@@ -51,17 +51,16 @@ class LogisticRegressionClassifier:
         cost = 0
         grad = np.zeros(w.shape)
 
-        ### SECOND TRY START
+        ### YOUR CODE HERE
         Xw = np.dot(X, w)  # (n,1)
         XT = X.T  # (d,n)
 
         yXw = y * Xw  # position wise multiplication, (n,1)
         cost = np.mean(np.log(1 + np.exp(-yXw)))
 
-        # The y should have negative sign, but it doesn't work if we have it
-        grad = ( XT @ ( -y * logistic(-yXw) ) ) / X.shape[0]
+        grad = (XT @ (-y * logistic(-yXw))) / X.shape[0]
 
-        ### SECOND TRY END
+        ### END CODE
         assert grad.shape == w.shape
         return cost, grad
 
@@ -119,7 +118,7 @@ class LogisticRegressionClassifier:
                     cost_best = cost
                     self.w = w
 
-                # We save the cost of the current epoch
+            # We save the cost of the current epoch
             history.append(cost)
 
         ### END CODE
@@ -170,7 +169,6 @@ class LogisticRegressionClassifier:
             if prediction[i] == y[i]:
                 correct_predictions += 1
 
-        # The fraction of prediction that are wrong
         score = correct_predictions / rows
         ### END CODE
         return score

@@ -29,9 +29,17 @@ def softmax(X):
     rows = X.shape[0]
 
     for row in range(rows):
-        xMax = np.amax(X[row])
+        xMax = np.max(X[row])
         smlog = X[row] - xMax - np.log(np.sum(np.exp(X[row] - xMax)))
         res[row] = np.exp(smlog)
+        
+    """for i in range(X.shape[0]):
+        maks = np.max(X[i, :])
+        exp_vals = np.exp(X[i, :] - maks)
+        sumsoft = np.sum(exp_vals)
+        interres = exp_vals / sumsoft
+        res[i, :] = interres    """
+        
     ### END CODE
     return res
 
@@ -70,13 +78,14 @@ class SoftmaxClassifier:
         """
         cost = np.nan
         grad = np.zeros(W.shape) * np.nan
-        Yk = one_in_k_encoding(y, self.num_classes)  # may help - otherwise you may remove it
+        Yk = one_in_k_encoding(y, self.num_classes)
         ### YOUR CODE HERE
         n = X.shape[0]
         XW = X @ W
         softmaxXW = softmax(XW)
-        cost = -np.mean(np.log(Yk.T @ softmaxXW))
-        grad = -1/n * (X.T @ (Yk - softmaxXW)) # rounding might be wrong
+        
+        cost = -np.mean(np.log(softmaxXW)[np.nonzero(Yk)])
+        grad = -1/n * (X.T @ (Yk - softmaxXW))
 
         ### END CODE
         return cost, grad
@@ -106,34 +115,27 @@ class SoftmaxClassifier:
         # Number of batches (Iterations) per epoch
         numOfBatches = int(np.floor(X.shape[0] / batch_size))
 
-        # Yk is the one in k encoding of Y
-        Yk = one_in_k_encoding(Y, self.num_classes)
-        yrows, ycols = Yk.shape
-
         # Here we do mini-batch stochastic gradient descent
         for _ in range(epochs):
             cost_best = float("inf")
-            # Here we get our sample of size batch_size
-            XY = np.hstack((X, Yk))
-            XYShuff = np.random.permutation(X.shape[0])
-            XYs = XYShuff[j * batch_size : (j + 1) * batch_size, :]
-            XShuff = XYs[:, :-ycols]
-            YShuff = XYs[:, :-ycols]
             
-
+            # We shuffle the indexes with same dimensions as X
+            shuff_index = np.random.permutation(X.shape[0])
             for j in range(numOfBatches):
-
-                # WE ARE HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                # Here we compute g (gradient) and the new w
+                
+                shuff_batch = shuff_index[j * batch_size : (j + 1) * batch_size]
+                X_batch = X[shuff_batch]
+                Y_batch = Y[shuff_batch]
+                
                 eta = lr  # step size
-                cost, grad = self.cost_grad(XShuff, YShuff, W)
+                cost, grad = self.cost_grad(X_batch, Y_batch, W)
                 W = W - eta * grad
 
                 if cost_best > cost:
                     cost_best = cost
                     self.W = W
 
-                # We save the cost of the current epoch
+            # We save the cost of the current epoch
             history.append(cost)
 
         ### END CODE
@@ -152,7 +154,7 @@ class SoftmaxClassifier:
         out = 0
         ### YOUR CODE HERE
         
-        out = np.mean(self.predict(X) == Y)
+        out: float = np.mean(self.predict(X) == Y)
         
         ### END CODE
         return out
@@ -167,9 +169,8 @@ class SoftmaxClassifier:
         """
         out = None
         ### YOUR CODE HERE
-        prediction = softmax(X @ self.W)
-        for i in range(prediction.shape[0]):
-            out[i] = np.argmax(prediction[i])
+        prediction = X @ self.W
+        out = np.argmax(prediction, axis=1)
         ### END CODE
         return out
 
@@ -207,19 +208,8 @@ def test_grad():
     numerical_grad_check(f, w)
     print("Test Success")
 
-def test_grad_2():
-    print("*" * 5, "Testing  Gradient  2")
-    X = np.array([[10.0, 2.0], [7.0, 4.0], [3.0, -8.0]])
-    w = np.ones((2, 3))
-    y = np.array([0, 1, 2])
-    scl = SoftmaxClassifier(num_classes=3)
-    f = lambda z: scl.cost_grad(X, y, W=z)
-    numerical_grad_check(f, w)
-    print("Test Success")
-
 
 if __name__ == "__main__":
     test_encoding()
     test_softmax()
-    # test_grad_2()
     test_grad()
