@@ -30,8 +30,7 @@ def softmax(X):
 
     for row in range(rows):
         xMax = np.amax(X[row])
-        logsum = np.log(np.sum(np.exp(X[row] - xMax))) + xMax
-        smlog = X[row] - logsum
+        smlog = X[row] - xMax - np.log(np.sum(np.exp(X[row] - xMax)))
         res[row] = np.exp(smlog)
     ### END CODE
     return res
