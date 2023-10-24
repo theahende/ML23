@@ -1,4 +1,5 @@
 import numpy as np
+# import pytorch as pt
 
 def one_in_k_encoding(vec, k):
     """ One-in-k encoding of vector to k classes 
@@ -38,6 +39,12 @@ def softmax(X):
     """
     res = np.zeros(X.shape)
     ### YOUR CODE HERE
+    rows = X.shape[0]
+
+    for row in range(rows):
+        xMax = np.max(X[row])
+        smlog = X[row] - xMax - np.log(np.sum(np.exp(X[row] - xMax)))
+        res[row] = np.exp(smlog)
     ### END CODE
     return res
 
@@ -51,6 +58,7 @@ def relu(x):
         Beware of np.max and look at np.maximum
     """
     ### YOUR CODE HERE
+    res = np.maximum(0, x)
     ### END CODE
     return res
 
@@ -96,6 +104,9 @@ class NetClassifier():
             params = self.params
         pred = None
         ### YOUR CODE HERE
+        hidden_layer = relu(X @ params['W1'] + params['b1'])
+        out_layer = softmax(hidden_layer) @ params['W2'] + params['b2']
+        pred = np.argmax(out_layer, axis=1)
         ### END CODE
         return pred
      
@@ -114,6 +125,7 @@ class NetClassifier():
             params = self.params
         acc = None
         ### YOUR CODE HERE
+        acc: float = np.mean(self.predict(X, params) == y)
         ### END CODE
         return acc
     
@@ -153,6 +165,7 @@ class NetClassifier():
         labels = one_in_k_encoding(y, W2.shape[1]) # shape n x k
                         
         ### YOUR CODE HERE - FORWARD PASS - compute cost with weight decay and store relevant values for backprop
+        
         ### END CODE
         
         ### YOUR CODE HERE - BACKWARDS PASS - compute derivatives of all weights and bias, store them in d_w1, d_w2, d_b1, d_b2
@@ -195,6 +208,7 @@ class NetClassifier():
 
         
         ### YOUR CODE HERE
+        
         ### END CODE
         # hist dict should look like this with something different than none
         #hist = {'train_loss': None, 'train_acc': None, 'val_loss': None, 'val_acc': None}
