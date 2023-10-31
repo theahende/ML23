@@ -1,5 +1,4 @@
 import numpy as np
-# import pytorch as pt
 
 def one_in_k_encoding(vec, k):
     """ One-in-k encoding of vector to k classes 
@@ -105,7 +104,7 @@ class NetClassifier():
         pred = None
         ### YOUR CODE HERE
         hidden_layer = relu(X @ params['W1'] + params['b1'])
-        out_layer = softmax(hidden_layer) @ params['W2'] + params['b2']
+        out_layer = softmax(hidden_layer @ params['W2'] + params['b2'])
         pred = np.argmax(out_layer, axis=1)
         ### END CODE
         return pred
@@ -165,10 +164,22 @@ class NetClassifier():
         labels = one_in_k_encoding(y, W2.shape[1]) # shape n x k
                         
         ### YOUR CODE HERE - FORWARD PASS - compute cost with weight decay and store relevant values for backprop
+        hidden_layer = relu(X @ W1 + b1)
+        out_layer = softmax(hidden_layer @ W2 + b2)
+        ln = np.log(out_layer)
+        soft_nn = -np.sum(labels * ln)
         
+        w_sum1 = np.sum(W1**2)
+        w_sum2 = np.sum(W2**2)
+        ww_plus = w_sum1 + w_sum2
+        mul = c * ww_plus
+        
+        final_plus = mul + soft_nn
         ### END CODE
         
         ### YOUR CODE HERE - BACKWARDS PASS - compute derivatives of all weights and bias, store them in d_w1, d_w2, d_b1, d_b2
+        
+        cost = final_plus / X.shape[0]
         ### END CODE
         # the return signature
         return cost, {'d_w1': d_w1, 'd_w2': d_w2, 'd_b1': d_b1, 'd_b2': d_b2}
@@ -208,6 +219,43 @@ class NetClassifier():
 
         
         ### YOUR CODE HERE
+        train_loss = []
+        train_acc = []
+        val_loss = []
+        val_acc = []
+        numOfBatches = int(np.floor(X_train.shape[0] / batch_size))        
+        
+        for epoch in range(epochs):
+            cost_best = float('inf')
+            
+            # We shuffle the indexes with same dimensions as X
+            shuff_index = np.random.permutation(X_train.shape[0])
+            
+            for j in range(numOfBatches):
+                shuff_batch = shuff_index[j * batch_size : (j + 1) * batch_size]
+                X_batch = X_train[shuff_batch]
+                Y_batch = y_train[shuff_batch]
+                
+                eta = lr
+                cost, grad = self.cost_grad(X_batch, Y_batch, init_params, c)
+                W1 = init_params['W1'] - eta * grad['d_w1']
+                W2 = init_params['W2'] - eta * grad['d_w2']
+                b1 = init_params['b1'] - eta * grad['d_b1']
+                b2 = init_params['b2'] - eta * grad['d_b2']
+                
+                if cost_best > cost:
+                    cost_best = cost
+                    self.params = make_dict(W1, b1, W2, b2)
+                
+            train_loss.append(cost)
+            train_acc.append(self.score(X_train, y_train))
+            val_loss.append(self.cost_grad(X_val, y_val, self.params)[0])
+            val_acc.append(self.score(X_val, y_val))
+            
+        hist['train_loss'] = train_loss
+        hist['train_acc'] = train_acc
+        hist['val_loss'] = val_loss
+        hist['val_acc'] = val_acc
         
         ### END CODE
         # hist dict should look like this with something different than none
