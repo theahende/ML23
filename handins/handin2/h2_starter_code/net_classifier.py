@@ -12,6 +12,11 @@ def one_in_k_encoding(vec, k):
     enc[np.arange(n), vec] = 1
     return enc
 
+def derive_relu(x, z):
+    der_z = x
+    der_z[z <= 0] = 0
+    return der_z
+
 def softmax(X):
     """ 
     You can take this from handin I
@@ -164,22 +169,28 @@ class NetClassifier():
         labels = one_in_k_encoding(y, W2.shape[1]) # shape n x k
                         
         ### YOUR CODE HERE - FORWARD PASS - compute cost with weight decay and store relevant values for backprop
-        hidden_layer = relu(X @ W1 + b1)
-        out_layer = softmax(hidden_layer @ W2 + b2)
-        ln = np.log(out_layer)
-        soft_nn = -np.sum(labels * ln)
+        batch_size = X.shape[0]
+        # Forward pass
+        g = X @ W1
+        d = g + b1
+        our_c = relu(d)
+
+        e = our_c @ W2
+        z = e + b2
+        sm_z = softmax(z)
+
+        sm_z_correct = np.choose(y, sm_z.T)
+        cost = np.mean(-np.log(sm_z_correct)) + c * (np.sum(W1 ** 2) + np.sum(W2 ** 2))
         
-        w_sum1 = np.sum(W1**2)
-        w_sum2 = np.sum(W2**2)
-        ww_plus = w_sum1 + w_sum2
-        mul = c * ww_plus
-        
-        final_plus = mul + soft_nn
-        ### END CODE
-        
-        ### YOUR CODE HERE - BACKWARDS PASS - compute derivatives of all weights and bias, store them in d_w1, d_w2, d_b1, d_b2
-        
-        cost = final_plus / X.shape[0]
+        # Backwards pass
+        d_sm_z = sm_z - labels #  # Why can we neglect the delta
+        d_b2 = np.mean(d_sm_z, axis=0, keepdims=True) #??? 
+        d_w2 = (our_c.T @ d_sm_z) / batch_size + c * 2 * W2 # WHY divide by batch size
+
+        d_sm_z_2 = d_sm_z @ W2.T 
+        d_relu = derive_relu(d_sm_z_2, d)
+        d_b1 = np.mean(d_relu, axis=0, keepdims=True)
+        d_w1 = (X.T @ d_relu) / batch_size + 2 * c * W1
         ### END CODE
         # the return signature
         return cost, {'d_w1': d_w1, 'd_w2': d_w2, 'd_b1': d_b1, 'd_b2': d_b2}
@@ -210,6 +221,8 @@ class NetClassifier():
         b1 = init_params['b1']
         W2 = init_params['W2']
         b2 = init_params['b2']
+        self.params = {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
+        
         hist = {
             'train_loss': None,
             'train_acc': None,
@@ -225,7 +238,7 @@ class NetClassifier():
         val_acc = []
         numOfBatches = int(np.floor(X_train.shape[0] / batch_size))        
         
-        for epoch in range(epochs):
+        for _ in range(epochs):
             cost_best = float('inf')
             
             # We shuffle the indexes with same dimensions as X
@@ -237,29 +250,29 @@ class NetClassifier():
                 Y_batch = y_train[shuff_batch]
                 
                 eta = lr
-                cost, grad = self.cost_grad(X_batch, Y_batch, init_params, c)
-                W1 = init_params['W1'] - eta * grad['d_w1']
-                W2 = init_params['W2'] - eta * grad['d_w2']
-                b1 = init_params['b1'] - eta * grad['d_b1']
-                b2 = init_params['b2'] - eta * grad['d_b2']
+                cost, grad = self.cost_grad(X_batch, Y_batch, self.params, c)
+                W1 = W1 - eta * grad['d_w1']
+                W2 = W2 - eta * grad['d_w2']
+                b1 = b1 - eta * grad['d_b1']
+                b2 = b2 - eta * grad['d_b2']
                 
                 if cost_best > cost:
                     cost_best = cost
-                    self.params = make_dict(W1, b1, W2, b2)
-                
+                    self.params = {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
+                    
             train_loss.append(cost)
             train_acc.append(self.score(X_train, y_train))
             val_loss.append(self.cost_grad(X_val, y_val, self.params)[0])
             val_acc.append(self.score(X_val, y_val))
             
-        hist['train_loss'] = train_loss
-        hist['train_acc'] = train_acc
-        hist['val_loss'] = val_loss
-        hist['val_acc'] = val_acc
+        # hist['train_loss'] = train_loss
+        # hist['train_acc'] = train_acc
+        # hist['val_loss'] = val_loss
+        # hist['val_acc'] = val_acc
         
         ### END CODE
         # hist dict should look like this with something different than none
-        #hist = {'train_loss': None, 'train_acc': None, 'val_loss': None, 'val_acc': None}
+        hist = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
         ## self.params should look like this with something better than none, i.e. the best parameters found.
         # self.params = {'W1': None, 'b1': None, 'W2': None, 'b2': None}
         return hist
