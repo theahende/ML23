@@ -106,10 +106,23 @@ class NetClassifier():
         """
         if params is None:
             params = self.params
+        
+        W1 = params['W1']
+        b1 = params['b1']
+        W2 = params['W2']
+        b2 = params['b2']
+        
         pred = None
+        
         ### YOUR CODE HERE
-        hidden_layer = relu(X @ params['W1'] + params['b1'])
-        out_layer = softmax(hidden_layer @ params['W2'] + params['b2'])
+        
+        g = X @ W1
+        d = g + b1
+        our_c = relu(d)
+
+        e = our_c @ W2
+        z = e + b2
+        out_layer = softmax(z)
         pred = np.argmax(out_layer, axis=1)
         ### END CODE
         return pred
@@ -178,19 +191,18 @@ class NetClassifier():
         e = our_c @ W2
         z = e + b2
         sm_z = softmax(z)
-
-        sm_z_correct = np.choose(y, sm_z.T)
-        cost = np.mean(-np.log(sm_z_correct)) + c * (np.sum(W1 ** 2) + np.sum(W2 ** 2))
+        weight_decay = c * (np.sum(W1 ** 2) + np.sum(W2 ** 2))
+        cost = -np.sum(labels*np.log(sm_z)) + weight_decay
         
         # Backwards pass
-        d_sm_z = sm_z - labels #  # Why can we neglect the delta
-        d_b2 = np.mean(d_sm_z, axis=0, keepdims=True) #??? 
-        d_w2 = (our_c.T @ d_sm_z) / batch_size + c * 2 * W2 # WHY divide by batch size
+        d_sm_z = sm_z - labels
+        d_b2 = d_sm_z
+        d_w2 = (our_c.T @ d_sm_z) + c * 2 * W2 
 
         d_sm_z_2 = d_sm_z @ W2.T 
         d_relu = derive_relu(d_sm_z_2, d)
-        d_b1 = np.mean(d_relu, axis=0, keepdims=True)
-        d_w1 = (X.T @ d_relu) / batch_size + 2 * c * W1
+        d_b1 = d_relu
+        d_w1 = (X.T @ d_relu) + 2 * c * W1
         ### END CODE
         # the return signature
         return cost, {'d_w1': d_w1, 'd_w2': d_w2, 'd_b1': d_b1, 'd_b2': d_b2}
@@ -265,10 +277,6 @@ class NetClassifier():
             val_loss.append(self.cost_grad(X_val, y_val, self.params)[0])
             val_acc.append(self.score(X_val, y_val))
             
-        # hist['train_loss'] = train_loss
-        # hist['train_acc'] = train_acc
-        # hist['val_loss'] = val_loss
-        # hist['val_acc'] = val_acc
         
         ### END CODE
         # hist dict should look like this with something different than none
