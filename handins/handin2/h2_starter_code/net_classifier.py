@@ -183,9 +183,9 @@ class NetClassifier():
         cost = np.mean(-np.log(sm_z_correct)) + c * (np.sum(W1 ** 2) + np.sum(W2 ** 2))
         
         # Backwards pass
-        d_sm_z = sm_z - labels #  # Why can we neglect the delta
-        d_b2 = np.mean(d_sm_z, axis=0, keepdims=True) #??? 
-        d_w2 = (our_c.T @ d_sm_z) / batch_size + c * 2 * W2 # WHY divide by batch size
+        d_sm_z = sm_z - labels
+        d_b2 = np.mean(d_sm_z, axis=0, keepdims=True) 
+        d_w2 = (our_c.T @ d_sm_z) / batch_size + c * 2 * W2 
 
         d_sm_z_2 = d_sm_z @ W2.T 
         d_relu = derive_relu(d_sm_z_2, d)
