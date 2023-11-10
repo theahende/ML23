@@ -193,16 +193,21 @@ class NetClassifier():
         sm_z = softmax(z)
         weight_decay = c * (np.sum(W1 ** 2) + np.sum(W2 ** 2))
         cost = -np.sum(labels*np.log(sm_z)) + weight_decay
-        
+        print(f"cost = {cost}")
         # Backwards pass
         d_sm_z = sm_z - labels
         d_b2 = d_sm_z
-        d_w2 = (our_c.T @ d_sm_z) + c * 2 * W2 
+        d_w2 = (our_c.T @ d_sm_z) + c * 2 * W2
 
         d_sm_z_2 = d_sm_z @ W2.T 
         d_relu = derive_relu(d_sm_z_2, d)
         d_b1 = d_relu
         d_w1 = (X.T @ d_relu) + 2 * c * W1
+        
+        d_w1 = d_w1 / len(y)
+        d_w2 = d_w2 / len(y)
+        d_b1 = np.mean(d_b1, axis=0)[np.newaxis,:]
+        d_b2 = np.mean(d_b2, axis=0)[np.newaxis,:]
         ### END CODE
         # the return signature
         return cost, {'d_w1': d_w1, 'd_w2': d_w2, 'd_b1': d_b1, 'd_b2': d_b2}
@@ -319,7 +324,8 @@ def test_grad():
     params = get_init_params(input_dim, hidden_size, output_size)
 
     nc = NetClassifier()
-    X = np.random.randn(7, input_dim)
+    # X = np.random.randn(7, input_dim)
+    X = np.ones((7, 7))
     y = np.array([0, 1, 2, 0, 1, 2, 0])
 
     f = lambda z: nc.cost_grad(X, y, params, c=1.0)
@@ -346,7 +352,8 @@ if __name__ == '__main__':
     batch_size = 7
     nc = NetClassifier()
     params = get_init_params(input_dim, hidden_size, output_size)
-    X = np.random.randn(batch_size, input_dim)
+    #X = np.random.randn(batch_size, input_dim)
+    X = np.ones((7,3))
     Y = np.array([0, 1, 2, 0, 1, 2, 0])
     nc.cost_grad(X, Y, params, c=0)
     test_grad()
