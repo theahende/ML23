@@ -24,14 +24,6 @@ def collage(batch_i, batch_j):
     im_copy[0, half_img:im_size, half_img:im_size] = batch_j[0, half_img:im_size, half_img:im_size]
     im_copy[0, 0:half_img, 0:half_img] = batch_j[0, 0:half_img, 0:half_img]
     
-    
-    
-    # lower_left = batch_i[0, half_img:im_size, 0:half_img]
-    
-    # upper_right = batch_i[0, 0:half_img, half_img:im_size]
-    # result = np.block([[[upper_left, upper_right],
-    #                   [lower_left, lower_right]]])
-    
     result = im_copy
     
     # print(result)
