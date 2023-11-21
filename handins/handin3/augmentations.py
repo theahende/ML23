@@ -18,13 +18,23 @@ def collage(batch_i, batch_j):
     
     ### YOUR CODE HERE
     interpolation = 0.5
-    half_img = int(im_size/2)
-    lower_left = batch_i[0, 0:half_img, half_img:im_size]
-    upper_left = batch_j[0, 0:half_img, 0:half_img]
-    lower_right = batch_j[0, half_img:im_size, half_img:im_size]
-    upper_right = batch_i[0, half_img:im_size, 0:half_img]
-    result = np.block([[[upper_left, upper_right],
-                      [lower_left, lower_right]]])
+    
+    im_copy = np.copy(batch_i)
+    half_img = im_size//2
+    im_copy[0, half_img:im_size, half_img:im_size] = batch_j[0, half_img:im_size, half_img:im_size]
+    im_copy[0, 0:half_img, 0:half_img] = batch_j[0, 0:half_img, 0:half_img]
+    
+    
+    
+    # lower_left = batch_i[0, half_img:im_size, 0:half_img]
+    
+    # upper_right = batch_i[0, 0:half_img, half_img:im_size]
+    # result = np.block([[[upper_left, upper_right],
+    #                   [lower_left, lower_right]]])
+    
+    result = im_copy
+    
+    # print(result)
     ### END CODE
 
     return result, interpolation
@@ -91,6 +101,15 @@ def augment(augmentation, batch, labels, n_classes):
 def test_augmentations():
     im_1 = np.ones((1, 4, 4), dtype=np.float32)
     im_2 = np.zeros((1, 4, 4), dtype=np.float32)
+    
+    # im_1 = np.array([[[1,2,3,4],
+    #                  [1,2,3,4],
+    #                  [1,2,3,4],
+    #                  [1,2,3,4]]])
+    # im_2 = np.array([[[5,6,7,8],
+    #                  [5,6,7,8],
+    #                  [5,6,7,8],
+    #                  [5,6,7,8]]])
 
     collage_output, collage_interpolation = collage(im_1, im_2)
     mixup_output, mixup_interpolation = mixup(im_1, im_2)
@@ -105,6 +124,7 @@ def test_augmentations():
     np.testing.assert_array_less(mixup_interpolation, 1)
     np.testing.assert_array_less(0, mixup_interpolation)
 
+    print('All tests passed!')
 
 if __name__ == '__main__':
     test_augmentations()

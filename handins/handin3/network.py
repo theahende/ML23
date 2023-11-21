@@ -45,6 +45,20 @@ class Net(nn.Module):
         We recommend using torch.nn.functional (F.) for max pooling and relu
         """
         ### YOUR CODE HERE
+        # Apply the first convolutional layer
+        x1 = self.conv1(x)
+        # Apply the first max pooling layer
+        x2 = F.max_pool2d(x1, 2)
+        # Apply the first relu activation
+        x3 = F.relu(x2)
+        
+        # Apply the second convolutional layer
+        x4 = self.conv2(x3)
+        # Apply the second max pooling layer
+        x5 = F.max_pool2d(x4, 2)
+        # Apply the second relu activation
+        x = F.relu(x5)
+        
         ### END CODE
 
         # Reshape the conv outputs so that we can apply linear layers to them
@@ -58,6 +72,8 @@ class Net(nn.Module):
         We first extract the convolutional features and then apply the generalization head onto those.
         """
         ### YOUR CODE HERE
+        pred = self.apply_convs(x)
+        x = self.generalizer(pred)
         ### END CODE
 
         # Note: we use LOG SOFTMAX here, rather than just softmax.
@@ -70,6 +86,10 @@ class Net(nn.Module):
         We first extract the convolutional features and then apply the pretraining head onto those.
         """
         ### YOUR CODE HERE
+        
+        pred = self.apply_convs(x)
+        x = self.pretrainer(pred)
+        
         ### END CODE
 
         # Note: we use LOG SOFTMAX here, rather than just softmax.

@@ -37,6 +37,9 @@ def cross_entropy(pred, target):
         raise ValueError('X-Entropy loss requires torch tensors for input')
 
     ### YOUR CODE HERE
+    # We need dim=1 because we want to sum over the classes (dim=0 is the batch dimension)
+    log_likelihoods = -torch.sum(target * pred, dim=1)
+    mean_log_likelihoods = torch.mean(log_likelihoods)
     ### END CODE
 
     return mean_log_likelihoods
@@ -72,6 +75,8 @@ def test_cross_entropy():
 
     loss = cross_entropy(pred_batch, target_batch).numpy()
     np.testing.assert_equal(loss, np.mean(correct_outputs))
+    
+    print('Cross entropy test passed')
 
 
 if __name__ == '__main__':
